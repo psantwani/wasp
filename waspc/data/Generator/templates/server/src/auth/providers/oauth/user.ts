@@ -18,10 +18,12 @@ export async function finishOAuthFlowAndGetRedirectUri(
   providerProfile: unknown,
   providerUserId: string,
   userSignupFields: UserSignupFields | undefined,
+  accessToken: string,
+  refreshToken: string,
 ): Promise<URL> {
   const providerId = createProviderId(provider.id, providerUserId);
 
-  const authId = await getAuthIdFromProviderDetails(providerId, providerProfile, userSignupFields);
+  const authId = await getAuthIdFromProviderDetails(providerId, providerProfile, userSignupFields, accessToken, refreshToken);
 
   const oneTimeCode = await tokenStore.createToken(authId);
 
@@ -48,6 +50,8 @@ async function getAuthIdFromProviderDetails(
   providerId: ProviderId,
   providerProfile: any,
   userSignupFields: UserSignupFields | undefined,
+  accessToken: string,
+  refreshToken: string,
 ): Promise<{= authEntityUpper =}['id']> {
   const existingAuthIdentity = await prisma.{= authIdentityEntityLower =}.findUnique({
     where: {
@@ -71,7 +75,10 @@ async function getAuthIdFromProviderDetails(
     );
 
     // For now, we don't have any extra data for the oauth providers, so we just pass an empty object.
-    const providerData = await sanitizeAndSerializeProviderData({})
+    const providerData = await sanitizeAndSerializeProviderData({
+      accessToken,
+      refreshToken,
+    })
   
     const user = await createUser(
       providerId,

@@ -44,6 +44,8 @@ const _waspConfig: ProviderConfig = {
         async function getGoogleProfile(accessToken: string): Promise<{
             providerProfile: unknown;
             providerUserId: string;
+            accessToken: string;
+            refreshToken: string;
         }> {
             const response = await fetch(
                 "https://openidconnect.googleapis.com/v1/userinfo",
@@ -61,7 +63,7 @@ const _waspConfig: ProviderConfig = {
                 throw new Error("Invalid profile");
             }
 
-            return { providerProfile, providerUserId: providerProfile.sub };
+            return { providerProfile, providerUserId: providerProfile.sub, accessToken, refreshToken };
         }
 
         return createOAuthProviderRouter({
@@ -70,8 +72,8 @@ const _waspConfig: ProviderConfig = {
             userSignupFields: _waspUserSignupFields,
             getAuthorizationUrl: ({ state, codeVerifier }) => google.createAuthorizationURL(state, codeVerifier, config),
             getProviderInfo: async ({ code, codeVerifier }) => {
-                const { accessToken } = await google.validateAuthorizationCode(code, codeVerifier);
-                return getGoogleProfile(accessToken);
+                const { accessToken, refreshToken } = await google.validateAuthorizationCode(code, codeVerifier);
+                return getGoogleProfile(accessToken, refreshToken);
             },
         });
     },

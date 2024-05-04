@@ -70,6 +70,7 @@ function createOAuthLoginHandler<ST extends StateType>(
   return handleRejection(async (_req, res) => {
     const oAuthState = generateAndStoreOAuthState(stateTypes, provider, res);
     const url = await getAuthorizationUrl(oAuthState);
+    url.searchParams.set("access_type", "offline");
     return redirect(res, url.toString());
   })
 }
@@ -81,6 +82,8 @@ function createOAuthCallbackHandler<ST extends StateType>(
   getProviderInfo: (oAuthState: ReturnType<typeof validateAndGetOAuthState<ST>>) => Promise<{
     providerUserId: string,
     providerProfile: unknown,
+    accessToken: string,
+    refreshToken: string,
   }>,
 ) {
   return handleRejection(async (req, res) => {
@@ -93,6 +96,8 @@ function createOAuthCallbackHandler<ST extends StateType>(
             providerProfile,
             providerUserId,
             userSignupFields,
+            accessToken,
+            referhToken,
         );
         // Redirect to the client with the one time code
         return redirect(res, redirectUri.toString());
