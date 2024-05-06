@@ -71,6 +71,7 @@ function createOAuthLoginHandler<ST extends StateType>(
     const oAuthState = generateAndStoreOAuthState(stateTypes, provider, res);
     const url = await getAuthorizationUrl(oAuthState);
     url.searchParams.set("access_type", "offline");
+    url.searchParams.set("prompt", "consent");
     return redirect(res, url.toString());
   })
 }
